@@ -15,8 +15,14 @@ Add this to your composer.json
 }]
 ```
 
-Obviously if you already have "repositories" section in your composer.json,
-you would add the "type" and "url" block in there.
+```
+"require" : {
+  "RESTalicious" : "dev-master"
+}
+```
+
+Obviously if you already have a "repositories" section in your composer.json,
+you would add the "type" and "url" block in there. The same for "require."
 
 Also, obviously you would need to run install the RESTalicious library.
 
