@@ -1,0 +1,12 @@
+{
+	"name" : "RESTalicious",
+	"description" : "Library to build a REST API using PHP",
+	"autoload" : {
+		"classmap" : [
+			"src"
+		],
+		"psr-4" : {
+			"hack3r3d\\RESTalicious\\API\\" : "src/"
+		}
+	}
+}
