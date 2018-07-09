@@ -28,9 +28,10 @@ abstract class Rest
     protected $args = array();
     
     /**
-     * @var string|NULL on PUT stores php://input in this member variable
+     * @var string|NULL on PUT|POST stores php://input in this member variable
+     * This data should be base64 coming in from the client.
      */
-    protected $file = NULL;
+    protected $data = NULL;
 
     /**
      * Sets up headers and parses GET,POST,PUT,DELETE
@@ -61,14 +62,15 @@ abstract class Rest
         switch($this->method) {
             case 'DELETE':
             case 'POST':
-                $this->request = $this->_cleanInputs($_POST);
+                $this->request = $this->_cleanInputs($_GET);
+                $this->data = file_get_content('php://input');
                 break;
             case 'GET':
                 $this->request = $this->_cleanInputs($_GET);
                 break;
             case 'PUT':
                 $this->request = $this->_cleanInputs($_GET);
-                $this->file = file_get_contents("php://input");
+                $this->data = file_get_contents("php://input");
                 break;
             default:
                 $this->_response('Invalid Method', 405);
