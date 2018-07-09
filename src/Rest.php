@@ -63,7 +63,7 @@ abstract class Rest
             case 'DELETE':
             case 'POST':
                 $this->request = $this->_cleanInputs($_GET);
-                $this->data = file_get_content('php://input');
+                $this->data = file_get_contents('php://input');
                 break;
             case 'GET':
                 $this->request = $this->_cleanInputs($_GET);
