@@ -80,7 +80,7 @@ abstract class Rest
     
     /**
      * Run the request.
-     * @return string|404 if endpoint doesn't exist.
+     * @return string|'404' if endpoint doesn't exist.
      */
     public function processAPI() 
     {
