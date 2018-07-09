@@ -43,19 +43,16 @@ protected function toilet()
 {
     switch ($this->verb) {
         case 'flush':
-            $this->toiletFlush();
+            return $this->toiletFlush();
         break;
     }
-    return $this->response;
 }
 ```
 
 So toilet is the noun and flush is the verb, hence the toiletFlush() method
 call. The real work is done in toiletFlush() and you should return some 
-sort of response object - that's the $this->response at the end of the
-toilet method. I would create a class called Response or something, that
-would get returned to the client as JSON. Those are the details you
-need to figure out on your own.
+sort of response object. Whatever is returned by the toilet method will
+get converted to JSON, so that implementation is entirely up to you. 
 
 In terms of how to wire this all up to make a Rest interface, I 
 create a file called api.php in a web directory for instance
