@@ -8,7 +8,7 @@ namespace hack3r3d\REST\API;
 abstract class Rest
 {
     /**
-     * @var string|NULL This is the http method coming in (GET, POST, PUT or DELETE)
+     * @var string|NULL This is the http method coming in (GET, POST, PUT, PATCH or DELETE)
      */
     protected $method = NULL;
     
@@ -18,58 +18,81 @@ abstract class Rest
     protected $endpoint = NULL;
     
     /**
-     * @var string|NULL This is the action to take such as create, update, delete
-     */
-    protected $verb = '';
-    
-    /**
      * @var array arguments such as /<endpoint>/<verb>/<arg0>/<arg1>
      */
     protected $args = array();
     
     /**
-     * @var string|NULL on PUT|POST stores php://input in this member variable
+     * @var string|NULL on PUT|POST|PATCH|DELETE stores php://input in this member variable
      * This data should be base64 coming in from the client.
      */
     protected $data = NULL;
-
+    
+    protected $request = NULL;
+    
+    /**
+     * @return mixed
+     */
+    public function getRequest()
+    {
+        return $this->request;
+    }
+    
+    /**
+     * @param Ambigous <string, multitype:NULL > $request
+     */
+    public function setRequest($request)
+    {
+        $this->request = $request;
+        return $this;
+    }
+    
     /**
      * Sets up headers and parses GET,POST,PUT,DELETE
      */
-    public function __construct($request) 
+    public function __construct($request)
     {
         header("Access-Control-Allow-Orgin: *");
         header("Access-Control-Allow-Methods: *");
         header("Content-Type: application/json");
-
+        
         $this->args = explode('/', rtrim($request, '/'));
         $this->endpoint = array_shift($this->args);
         if (array_key_exists(0, $this->args) && !is_numeric($this->args[0])) {
             $this->verb = array_shift($this->args);
         }
-
+        
         $this->method = $_SERVER['REQUEST_METHOD'];
         if ($this->method == 'POST' && array_key_exists('HTTP_X_HTTP_METHOD', $_SERVER)) {
             if ($_SERVER['HTTP_X_HTTP_METHOD'] == 'DELETE') {
                 $this->method = 'DELETE';
             } else if ($_SERVER['HTTP_X_HTTP_METHOD'] == 'PUT') {
                 $this->method = 'PUT';
+            } else if ($_SERVER['HTTP_X_HTTP_METHOD'] == 'PATCH') {
+                $this->method = 'PATCH';
             } else {
                 throw new \Exception("Unexpected Header");
             }
         }
-
+        
         switch($this->method) {
             case 'DELETE':
+                $this->setRequest($this->_cleanInputs($_POST));
+                $this->data = file_get_contents('php://input');
+                break;
             case 'POST':
-                $this->request = $this->_cleanInputs($_GET);
+                $this->getRequest($this->_cleanInputs($_POST));
                 $this->data = file_get_contents('php://input');
                 break;
             case 'GET':
-                $this->request = $this->_cleanInputs($_GET);
+                $this->setRequest($this->_cleanInputs($_GET));
                 break;
             case 'PUT':
-                $this->request = $this->_cleanInputs($_GET);
+                $this->setRequest($this->_cleanInputs($_POST));
+                $this->data = file_get_contents("php://input");
+                break;
+            case 'PATCH':
+                $this->setRequest($this->_cleanInputs($_POST));
                 $this->data = file_get_contents("php://input");
                 break;
             default:
@@ -82,7 +105,7 @@ abstract class Rest
      * Run the request.
      * @return string|'404' if endpoint doesn't exist.
      */
-    public function processAPI() 
+    public function processAPI()
     {
         if (method_exists($this, $this->endpoint)) {
             return $this->_response($this->{$this->endpoint}($this->args));
@@ -96,15 +119,15 @@ abstract class Rest
      * @param number $status
      * @return string JSON
      */
-    private function _response($data, $status = 200) 
+    private function _response($data, $status = 200)
     {
         header("HTTP/1.1 " . $status . " " . $this->requestStatus($status));
         return json_encode($data);
     }
     
-    private function _cleanInputs($data) 
+    private function _cleanInputs($data)
     {
-        $clean_input = Array();
+        $clean_input = array();
         if (is_array($data)) {
             foreach ($data as $k => $v) {
                 $clean_input[$k] = $this->_cleanInputs($v);
@@ -120,7 +143,7 @@ abstract class Rest
      * @param string $code
      * @return string
      */
-    protected function requestStatus($code) 
+    protected function requestStatus($code)
     {
         $status = array(
             200 => 'OK',
